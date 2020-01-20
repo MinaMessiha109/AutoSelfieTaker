@@ -1,5 +1,7 @@
 # AutoSelfieTaker
-*This program was developed in Two days at SB Hacks*
+*This program was developed in two days at SB Hacks*
+
+*This fork of AutoSelfieTaker adds a GUI to the application*
 
 AutoSelfieTaker is a Python program that uses your smartphone camera to capture the perfect selfie for you. The program utilitzes GCP Vision API to generate image data, and uses it to compute various aspects and measurments to accurately find the best image.
 
