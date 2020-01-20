@@ -67,11 +67,11 @@ def detect_faces(image_content):
 def check_smile(faces, labels=None):
     pic_valid = False
     for face in faces:
-        if face.joy_likelihood >= Settings.Likelihood.POSSIBLE.value and \
-           face.anger_likelihood <= Settings.Likelihood.UNLIKELY.value and \
-           face.sorrow_likelihood <= Settings.Likelihood.UNLIKELY.value and \
-           face.under_exposed_likelihood <= Settings.Likelihood.UNLIKELY.value and \
-           face.blurred_likelihood <= Settings.Likelihood.UNLIKELY.value and \
+        if face.joy_likelihood >= Settings.likelihood['unknown'] and \
+           face.anger_likelihood <= Settings.likelihood['unlikely'] and \
+           face.sorrow_likelihood <= Settings.likelihood['unlikely'] and \
+           face.under_exposed_likelihood <= Settings.likelihood['unlikely'] and \
+           face.blurred_likelihood <= Settings.likelihood['unlikely'] and \
            face.detection_confidence >= Settings.min_detection_confidence and \
            all([abs(angle) <= 15 for angle in [face.roll_angle, face.pan_angle, face.tilt_angle]]):
            pic_valid = True
@@ -83,15 +83,15 @@ def check_smile(faces, labels=None):
  
  
 def face_score(face):
-    score = (face.joy_likelihood / 5) * Settings.Weight.FIVE.value
-    score -= (face.sorrow_likelihood / 5) * Settings.Weight.FIVE.value
-    score -= (face.anger_likelihood / 5) * Settings.Weight.ONE.value
-    score -= (face.under_exposed_likelihood / 5) * Settings.Weight.ONE.value 
-    score -= (face.blurred_likelihood / 5) * Settings.Weight.ONE.value
-    score += (face.detection_confidence) * Settings.Weight.THREE.value
-    score -= (abs(face.roll_angle) / 90) * Settings.Weight.FOUR.value if face.roll_angle else 0 
-    score -= (abs(face.pan_angle) / 90) * Settings.Weight.FOUR.value if face.pan_angle else 0 
-    score -= (abs(face.tilt_angle) / 90) * Settings.Weight.FOUR.value if face.tilt_angle else 0 
+    score = (face.joy_likelihood / 5) * Settings.weight['five']
+    score -= (face.sorrow_likelihood / 5) * Settings.weight['five']
+    score -= (face.anger_likelihood / 5) * Settings.weight['one']
+    score -= (face.under_exposed_likelihood / 5) * Settings.weight['one'] 
+    score -= (face.blurred_likelihood / 5) * Settings.weight['one']
+    score += (face.detection_confidence) * Settings.weight['three']
+    score -= (abs(face.roll_angle) / 90) * Settings.weight['four'] if face.roll_angle else 0 
+    score -= (abs(face.pan_angle) / 90) * Settings.weight['four'] if face.pan_angle else 0 
+    score -= (abs(face.tilt_angle) / 90) * Settings.weight['four'] if face.tilt_angle else 0 
     return score
 
  
@@ -156,9 +156,21 @@ def finalize_image(image):
         print(e)
 
 
-def main():
-    wx_app = wx.App(0)
-    wx_app.MainLoop()
+def main(wxApp=False):
+    global PRINT_LOCK, FPS, client, img_counter, start, BLUR_THRESHOLD
+    PRINT_LOCK = threading.Lock()
+    BLUR_THRESHOLD = Settings.blur_threshold
+    FPS = Settings.frames_per_second
+    CREDNTIALS = Settings.json_path
+
+    client = vision.ImageAnnotatorClient.from_service_account_json(CREDNTIALS)
+    img_counter = 0
+    start = 0
+
+    if not wxApp:
+        wx_app = wx.App(0)
+        wx_app.MainLoop()
+
     pic_message = wx.BusyInfo("Taking pictures...")
     queue = Queue()
     img_dict = dict()
@@ -200,17 +212,17 @@ def main():
         del processing_message
         final_image.show()
 
-    del wx_app
+    if not wxApp: del wx_app
 
 
-if __name__ == '__main__':
-    global PRINT_LOCK, FPS, client, img_counter, start, BLUR_THRESHOLD
-    PRINT_LOCK = threading.Lock()
-    BLUR_THRESHOLD = Settings.blur_threshold
-    FPS = Settings.frames_per_second
-    CREDNTIALS = Settings.json_path
+# if __name__ == '__main__':
+    # global PRINT_LOCK, FPS, client, img_counter, start, BLUR_THRESHOLD
+    # PRINT_LOCK = threading.Lock()
+    # BLUR_THRESHOLD = Settings.blur_threshold
+    # FPS = Settings.frames_per_second
+    # CREDNTIALS = Settings.json_path
 
-    client = vision.ImageAnnotatorClient.from_service_account_json(CREDNTIALS)
-    img_counter = 0
-    start = 0
-    main()
+    # client = vision.ImageAnnotatorClient.from_service_account_json(CREDNTIALS)
+    # img_counter = 0
+    # start = 0
+    # main()
